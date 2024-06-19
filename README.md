@@ -6,6 +6,9 @@ Sure, here's a concise README file that describes the EcoNexus innovation and it
 
 EcoNexus is a Software as a Service (SaaS) platform developed by Bloomberg Professional Services that aims to bridge the gap between financial performance and Environmental, Social, and Governance (ESG) goals for businesses. It leverages multi-objective optimization algorithms to simultaneously consider a company's financial metrics and sustainability objectives, providing prescriptive solutions for informed decision-making.
 
+![image](https://github.com/sarasaudrius/FinTech-EcoNexus-Project/assets/149503993/537803c9-3af4-47a9-9cba-8e23141b7191)
+
+
 ## Target Industry
 
 The initial target industry for EcoNexus is the coffee industry, where sustainable sourcing and adhering to ESG practices within the supply chain are critical. Companies like Starbucks, Nespresso, and JDE need to ensure their suppliers meet fair labor practices, minimize water usage, and reduce environmental impact.
