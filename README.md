@@ -1,5 +1,3 @@
-Sure, here's a concise README file that describes the EcoNexus innovation and its objectives:
-
 # EcoNexus: Integrating Financial and ESG Goals with Multi-Objective Optimization
 
 ## Overview
