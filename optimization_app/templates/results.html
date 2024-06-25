@@ -17,16 +17,10 @@
     </ul>
     <h2>Totals</h2>
     <p>Total Cost: {{ result.total_cost }}</p>
-    <p>Total Wage: {{ result.total_wage }}</p>
-    <p>Total Water Conservation: {{ result.total_water }}</p>
-    <p>Total Quality Score: {{ result.total_quality }}</p>
-    <p>Total Yield: {{ result.total_yield }}</p>
+    <p>Total Water Usage: {{ result.total_water }}</p>
     <h2>Deviations</h2>
     <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
-    <p>Wage Deviation: +{{ result.wage_deviation[0] }}, -{{ result.wage_deviation[1] }}</p>
-    <p>Water Conservation Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
-    <p>Quality Deviation: +{{ result.quality_deviation[0] }}, -{{ result.quality_deviation[1] }}</p>
-    <p>Yield Deviation: +{{ result.yield_deviation[0] }}, -{{ result.yield_deviation[1] }}</p>
+    <p>Water Usage Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
     {% endif %}
 </body>
 </html>

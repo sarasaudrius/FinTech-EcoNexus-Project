@@ -44,17 +44,11 @@ def set_weights(filename):
         total_demand = float(request.form['total_demand'])
         weights = {
             'cost': float(request.form['weight_cost']),
-            'wage': float(request.form['weight_wage']),
-            'water': float(request.form['weight_water']),
-            'quality': float(request.form['weight_quality']),
-            'yield': float(request.form['weight_yield']),
+            'water': float(request.form['weight_water'])
         }
         goals = {
             'cost': float(request.form['cost_goal']),
-            'wage': float(request.form['wage_goal']),
-            'water': float(request.form['water_goal']),
-            'quality': float(request.form['quality_goal']),
-            'yield': float(request.form['yield_goal']),
+            'water': float(request.form['water_goal'])
         }
 
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -65,23 +59,27 @@ def set_weights(filename):
 
 def optimize(df, total_demand, weights, goals):
     suppliers = df['Supplier ID'].tolist()
-    supply_capacity = df['Cost per bag (euros)'].tolist()  # Assuming supply capacity is derived from cost per bag
     cost_per_bag = df['Cost per bag (euros)'].tolist()
-    wage_per_day = df['Wage per day (euros)'].tolist()
-    water_conservation = df['Water conservation (liters per bag)'].tolist()
-    quality_of_coffee = df['Quality of coffee (total cup points)'].tolist()
-    yield_bags = df['Yield (bags per ha)'].tolist()
+    water_usage = df['Water usage (liters per bag)'].tolist()
+    farm_size = df['Farm size (ha)'].tolist()
+    yield_per_ha = df['Yield (bags per ha)'].tolist()
+    
+    supply_capacity = [farm_size[i] * yield_per_ha[i] for i in range(len(suppliers))]
 
     # Create a new model
     model = gp.Model("supplier_selection")
 
     # Create variables
     x = model.addVars(suppliers, vtype=GRB.INTEGER, name="x", lb=0)
-    deviation_vars = {goal: (model.addVar(name=f"d_{goal}_plus", lb=0), model.addVar(name=f"d_{goal}_minus", lb=0)) for goal in goals}
+    deviation_vars = {
+        'cost': (model.addVar(name="d_cost_plus", lb=0), model.addVar(name="d_cost_minus", lb=0)),
+        'water': (model.addVar(name="d_water_plus", lb=0), model.addVar(name="d_water_minus", lb=0))
+    }
 
     # Set objective
     model.setObjective(
-        gp.quicksum(weights[goal] * (deviation_vars[goal][0] + deviation_vars[goal][1]) for goal in goals),
+        weights['cost'] * (deviation_vars['cost'][0] + deviation_vars['cost'][1]) +
+        weights['water'] * (deviation_vars['water'][0] + deviation_vars['water'][1]),
         GRB.MINIMIZE
     )
 
@@ -92,10 +90,7 @@ def optimize(df, total_demand, weights, goals):
 
     # Goals with deviation variables
     model.addConstr(gp.quicksum(cost_per_bag[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['cost'][1] - deviation_vars['cost'][0] == goals['cost'], "cost_goal")
-    model.addConstr(gp.quicksum(wage_per_day[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['wage'][1] - deviation_vars['wage'][0] == goals['wage'], "wage_goal")
-    model.addConstr(gp.quicksum(water_conservation[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['water'][1] - deviation_vars['water'][0] == goals['water'], "water_goal")
-    model.addConstr(gp.quicksum(quality_of_coffee[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['quality'][1] - deviation_vars['quality'][0] == goals['quality'], "quality_goal")
-    model.addConstr(gp.quicksum(yield_bags[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['yield'][1] - deviation_vars['yield'][0] == goals['yield'], "yield_goal")
+    model.addConstr(gp.quicksum(water_usage[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['water'][1] - deviation_vars['water'][0] == goals['water'], "water_goal")
 
     # Optimize model
     model.optimize()
@@ -105,12 +100,9 @@ def optimize(df, total_demand, weights, goals):
         result['status'] = "Optimal solution found"
         result['purchase'] = {suppliers[i]: x[suppliers[i]].X for i in range(len(suppliers))}
         result['total_cost'] = gp.quicksum(cost_per_bag[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        result['total_wage'] = gp.quicksum(wage_per_day[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        result['total_water'] = gp.quicksum(water_conservation[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        result['total_quality'] = gp.quicksum(quality_of_coffee[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        result['total_yield'] = gp.quicksum(yield_bags[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        for goal in goals:
-            result[f'{goal}_deviation'] = (deviation_vars[goal][0].X, deviation_vars[goal][1].X)
+        result['total_water'] = gp.quicksum(water_usage[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
+        result['cost_deviation'] = (deviation_vars['cost'][0].X, deviation_vars['cost'][1].X)
+        result['water_deviation'] = (deviation_vars['water'][0].X, deviation_vars['water'][1].X)
     else:
         result['status'] = "No optimal solution found"
 
