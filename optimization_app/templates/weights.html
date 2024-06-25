@@ -1,22 +1,41 @@
-<!DOCTYPE html>
+<!-- weights.html -->
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Set Weights</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+  <head>
+    <title>Set Weights and Goals</title>
+  </head>
+  <body>
     <h1>Set Weights for Goals</h1>
-    <form action="/weights/{{ filename }}" method="post">
-        <label for="weight_cost">Weight for Cost:</label>
-        <input type="text" id="weight_cost" name="weight_cost"><br>
-        <label for="weight_carbon">Weight for Carbon Footprint:</label>
-        <input type="text" id="weight_carbon" name="weight_carbon"><br>
-        <label for="weight_quality">Weight for Quality (optional):</label>
-        <input type="text" id="weight_quality" name="weight_quality"><br>
-        <label for="weight_wage">Weight for Wage (optional):</label>
-        <input type="text" id="weight_wage" name="weight_wage"><br>
-        <input type="submit" value="Submit Weights">
+    <form method="post">
+      <label for="total_demand">Total Demand:</label>
+      <input type="number" id="total_demand" name="total_demand" step="0.01" required><br>
+
+      <label for="weight_cost">Weight for Cost:</label>
+      <input type="number" id="weight_cost" name="weight_cost" step="0.01" required><br>
+      <label for="cost_goal">Cost Goal:</label>
+      <input type="number" id="cost_goal" name="cost_goal" step="0.01" required><br>
+
+      <label for="weight_wage">Weight for Wage:</label>
+      <input type="number" id="weight_wage" name="weight_wage" step="0.01" required><br>
+      <label for="wage_goal">Wage Goal:</label>
+      <input type="number" id="wage_goal" name="wage_goal" step="0.01" required><br>
+
+      <label for="weight_water">Weight for Water Conservation:</label>
+      <input type="number" id="weight_water" name="weight_water" step="0.01" required><br>
+      <label for="water_goal">Water Conservation Goal:</label>
+      <input type="number" id="water_goal" name="water_goal" step="0.01" required><br>
+
+      <label for="weight_quality">Weight for Quality of Coffee:</label>
+      <input type="number" id="weight_quality" name="weight_quality" step="0.01" required><br>
+      <label for="quality_goal">Quality Goal:</label>
+      <input type="number" id="quality_goal" name="quality_goal" step="0.01" required><br>
+
+      <label for="weight_yield">Weight for Yield:</label>
+      <input type="number" id="weight_yield" name="weight_yield" step="0.01" required><br>
+      <label for="yield_goal">Yield Goal:</label>
+      <input type="number" id="yield_goal" name="yield_goal" step="0.01" required><br>
+
+      <input type="submit" value="Optimize">
     </form>
-</body>
+  </body>
 </html>
