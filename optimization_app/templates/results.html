@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Optimization Results</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Optimization Results</h1>
+    <p>Status: {{ result.status }}</p>
+    {% if result.status == "Optimal solution found" %}
+    <h2>Purchases</h2>
+    <ul>
+        {% for supplier, quantity in result.purchase.items() %}
+        <li>{{ supplier }}: {{ quantity }} kg</li>
+        {% endfor %}
+    </ul>
+    <h2>Totals</h2>
+    <p>Total Cost: {{ result.total_cost }}</p>
+    <p>Total Carbon Footprint: {{ result.total_carbon }}</p>
+    <p>Total Quality Score: {{ result.total_quality }}</p>
+    <p>Total Wage: {{ result.total_wage }}</p>
+    <h2>Deviations</h2>
+    <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
+    <p>Carbon Footprint Deviation: +{{ result.carbon_deviation[0] }}, -{{ result.carbon_deviation[1] }}</p>
+    <p>Quality Deviation: +{{ result.quality_deviation[0] }}, -{{ result.quality_deviation[1] }}</p>
+    <p>Wage Deviation: +{{ result.wage_deviation[0] }}, -{{ result.wage_deviation[1] }}</p>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set Weights</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Set Weights for Goals</h1>
+    <form action="/weights/{{ filename }}" method="post">
+        <label for="weight_cost">Weight for Cost:</label>
+        <input type="text" id="weight_cost" name="weight_cost"><br>
+        <label for="weight_carbon">Weight for Carbon Footprint:</label>
+        <input type="text" id="weight_carbon" name="weight_carbon"><br>
+        <label for="weight_quality">Weight for Quality (optional):</label>
+        <input type="text" id="weight_quality" name="weight_quality"><br>
+        <label for="weight_wage">Weight for Wage (optional):</label>
+        <input type="text" id="weight_wage" name="weight_wage"><br>
+        <input type="submit" value="Submit Weights">
+    </form>
+</body>
+</html>
