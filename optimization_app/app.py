@@ -2,11 +2,11 @@
 App module for the optimization app.
 '''
 
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 import os
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
-from flask import Flask, request, render_template, redirect, url_for, flash, session
 from celery import Celery
 
 app = Flask(__name__)
@@ -15,9 +15,11 @@ app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
 app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
 
+# Initialize Celery
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
+# Ensure the uploads directory exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -57,29 +59,26 @@ def set_weights(filename):
 
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         df = pd.read_csv(filepath)
-        result = optimize.delay(df.to_dict(), total_demand, weights, goals, yield_scenario)
+        result = optimize(df, total_demand, weights, goals, yield_scenario)
 
         session['weights'] = weights
         session['goals'] = goals
         session['total_demand'] = total_demand
 
-        return render_template('results.html', result=result.get(), filename=filename)
+        return render_template('results.html', result=result)
     return render_template('weights.html', filename=filename)
 
 @app.route('/scenario/<filename>/<scenario>', methods=['GET'])
 def show_scenario(filename, scenario):
     print(f"Filename: {filename}, Scenario: {scenario}")
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    if not os.path.exists(filepath):
-        return "File not found", 404
-
     df = pd.read_csv(filepath)
 
     weights = session.get('weights')
     goals = session.get('goals')
     total_demand = session.get('total_demand')
 
-    result = optimize.delay(df.to_dict(), total_demand, weights, goals, scenario).get()
+    result = optimize(df, total_demand, weights, goals, scenario)
     result['filename'] = filename  # Ensure filename is passed to the template
     return render_template('results.html', result=result)
 

@@ -7,56 +7,29 @@
 </head>
 <body>
     <h1>Optimization Results</h1>
-
-    <h2>Average Yield Scenario</h2>
-    <p>Status: {{ result_average.status }}</p>
-    {% if result_average.status == "Optimal solution found" %}
-    <h3>Purchases</h3>
+    <p>Status: {{ result.status }}</p>
+    {% if result.status == "Optimal solution found" %}
+    <h2>Purchases</h2>
     <ul>
-        {% for supplier, quantity in result_average.purchase %}
+        {% for supplier, quantity in result.purchase %}
         <li>{{ supplier }}: {{ quantity }} bags</li>
         {% endfor %}
     </ul>
-    <h3>Totals</h3>
-    <p>Total Cost: {{ result_average.total_cost }}</p>
-    <p>Total Water Usage: {{ result_average.total_water }}</p>
-    <h3>Deviations</h3>
-    <p>Cost Deviation: +{{ result_average.cost_deviation[0] }}, -{{ result_average.cost_deviation[1] }}</p>
-    <p>Water Usage Deviation: +{{ result_average.water_deviation[0] }}, -{{ result_average.water_deviation[1] }}</p>
+    <h2>Totals</h2>
+    <p>Total Cost: {{ result.total_cost }}</p>
+    <p>Total Water Usage: {{ result.total_water }}</p>
+    <h2>Deviations</h2>
+    <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
+    <p>Water Usage Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
+    <h2>Scenarios</h2>
+    <button onclick="showScenario('high')">Show High Yield Scenario</button>
+    <button onclick="showScenario('low')">Show Low Yield Scenario</button>
     {% endif %}
 
-    <h2>High Yield Scenario</h2>
-    <p>Status: {{ result_high.status }}</p>
-    {% if result_high.status == "Optimal solution found" %}
-    <h3>Purchases</h3>
-    <ul>
-        {% for supplier, quantity in result_high.purchase %}
-        <li>{{ supplier }}: {{ quantity }} bags</li>
-        {% endfor %}
-    </ul>
-    <h3>Totals</h3>
-    <p>Total Cost: {{ result_high.total_cost }}</p>
-    <p>Total Water Usage: {{ result_high.total_water }}</p>
-    <h3>Deviations</h3>
-    <p>Cost Deviation: +{{ result_high.cost_deviation[0] }}, -{{ result_high.cost_deviation[1] }}</p>
-    <p>Water Usage Deviation: +{{ result_high.water_deviation[0] }}, -{{ result_high.water_deviation[1] }}</p>
-    {% endif %}
-
-    <h2>Low Yield Scenario</h2>
-    <p>Status: {{ result_low.status }}</p>
-    {% if result_low.status == "Optimal solution found" %}
-    <h3>Purchases</h3>
-    <ul>
-        {% for supplier, quantity in result_low.purchase %}
-        <li>{{ supplier }}: {{ quantity }} bags</li>
-        {% endfor %}
-    </ul>
-    <h3>Totals</h3>
-    <p>Total Cost: {{ result_low.total_cost }}</p>
-    <p>Total Water Usage: {{ result_low.total_water }}</p>
-    <h3>Deviations</h3>
-    <p>Cost Deviation: +{{ result_low.cost_deviation[0] }}, -{{ result_low.cost_deviation[1] }}</p>
-    <p>Water Usage Deviation: +{{ result_low.water_deviation[0] }}, -{{ result_low.water_deviation[1] }}</p>
-    {% endif %}
+    <script>
+        function showScenario(scenario) {
+            window.location.href = '{{ url_for("show_scenario", filename=result.filename, scenario="") }}' + scenario;
+        }
+    </script>
 </body>
 </html>
