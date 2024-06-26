@@ -29,8 +29,10 @@
     <script>
         function showScenario(scenario) {
             const url = '{{ url_for("show_scenario", filename=result.filename, scenario="__SCENARIO__") }}';
-            window.location.href = url.replace('__SCENARIO__', scenario);
+            const formedUrl = url.replace('__SCENARIO__', scenario);
+            console.log(formedUrl);  // Debugging output
+            window.location.href = formedUrl;
         }
-    </script>
+    </script>    
 </body>
 </html>

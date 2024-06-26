@@ -68,11 +68,14 @@ def set_weights(filename):
         return render_template('results.html', result=result)
     return render_template('weights.html', filename=filename)
 
-
 @app.route('/scenario/<filename>/<scenario>', methods=['GET'])
 def show_scenario(filename, scenario):
     print(f"Filename: {filename}, Scenario: {scenario}")  # Debugging output
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if not os.path.exists(filepath):
+        print(f"File not found: {filepath}")
+        return "File not found", 404
+    
     df = pd.read_csv(filepath)
 
     weights = session.get('weights')
