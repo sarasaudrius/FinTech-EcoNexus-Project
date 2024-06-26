@@ -70,6 +70,7 @@ def set_weights(filename):
 
 @app.route('/scenario/<filename>/<scenario>', methods=['GET'])
 def show_scenario(filename, scenario):
+    print(f"Filename: {filename}, Scenario: {scenario}")
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     df = pd.read_csv(filepath)
 
@@ -83,11 +84,11 @@ def show_scenario(filename, scenario):
 
 @celery.task
 def optimize(df, total_demand, weights, goals, yield_scenario):
-    suppliers = df['Supplier ID'].tolist()
-    cost_per_bag = df['Cost per bag (euros)'].tolist()
-    water_usage = df['Water usage (liters per bag)'].tolist()
-    farm_size = df['Farm size (ha)'].tolist()
-    yield_per_ha = df['Yield (bags per ha)'].tolist()
+    suppliers = df['Supplier ID']
+    cost_per_bag = df['Cost per bag (euros)']
+    water_usage = df['Water usage (liters per bag)']
+    farm_size = df['Farm size (ha)']
+    yield_per_ha = df['Yield (bags per ha)']
 
     if yield_scenario == 'high':
         yield_per_ha = [y * 1.2 for y in yield_per_ha]  # 20% higher than average
@@ -96,33 +97,27 @@ def optimize(df, total_demand, weights, goals, yield_scenario):
 
     supply_capacity = [farm_size[i] * yield_per_ha[i] for i in range(len(suppliers))]
 
-    # Create a new model
     model = gp.Model("supplier_selection")
 
-    # Create variables
     x = model.addVars(suppliers, vtype=GRB.INTEGER, name="x", lb=0)
     deviation_vars = {
         'cost': (model.addVar(name="d_cost_plus", lb=0), model.addVar(name="d_cost_minus", lb=0)),
         'water': (model.addVar(name="d_water_plus", lb=0), model.addVar(name="d_water_minus", lb=0))
     }
 
-    # Set objective
     model.setObjective(
         weights['cost'] * (deviation_vars['cost'][0] + deviation_vars['cost'][1]) +
         weights['water'] * (deviation_vars['water'][0] + deviation_vars['water'][1]),
         GRB.MINIMIZE
     )
 
-    # Add constraints
     model.addConstr(gp.quicksum(x[suppliers[i]] for i in range(len(suppliers))) == total_demand, "total_demand")
     for i in range(len(suppliers)):
         model.addConstr(x[suppliers[i]] <= supply_capacity[i], f"supply_capacity_{suppliers[i]}")
 
-    # Goals with deviation variables
     model.addConstr(gp.quicksum(cost_per_bag[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['cost'][1] - deviation_vars['cost'][0] == goals['cost'], "cost_goal")
     model.addConstr(gp.quicksum(water_usage[i] * x[suppliers[i]] for i in range(len(suppliers))) + deviation_vars['water'][1] - deviation_vars['water'][0] == goals['water'], "water_goal")
 
-    # Optimize model
     model.optimize()
 
     result = {}
