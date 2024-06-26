@@ -28,7 +28,8 @@
 
     <script>
         function showScenario(scenario) {
-            window.location.href = '{{ url_for("show_scenario", filename=result.filename) }}' + '/' + scenario;
+            const url = '{{ url_for("show_scenario", filename=result.filename, scenario="__SCENARIO__") }}';
+            window.location.href = url.replace('__SCENARIO__', scenario);
         }
     </script>
 </body>
