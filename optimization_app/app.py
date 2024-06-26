@@ -64,7 +64,6 @@ def set_weights(filename):
         return render_template('results.html', result=result)
     return render_template('weights.html', filename=filename)
 
-
 @app.route('/scenario/<filename>/<scenario>', methods=['GET'])
 def show_scenario(filename, scenario):
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -129,7 +128,6 @@ def optimize(df, total_demand, weights, goals, yield_scenario):
         result['total_water'] = gp.quicksum(water_usage[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
         result['cost_deviation'] = (deviation_vars['cost'][0].X, deviation_vars['cost'][1].X)
         result['water_deviation'] = (deviation_vars['water'][0].X, deviation_vars['water'][1].X)
-        result['filename'] = filename
     else:
         result['status'] = "No optimal solution found"
 
