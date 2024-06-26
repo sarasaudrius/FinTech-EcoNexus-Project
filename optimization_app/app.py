@@ -68,15 +68,20 @@ def set_weights(filename):
         return render_template('results.html', result=result)
     return render_template('weights.html', filename=filename)
 
+
 @app.route('/scenario/<filename>/<scenario>', methods=['GET'])
 def show_scenario(filename, scenario):
-    print(f"Filename: {filename}, Scenario: {scenario}")
+    print(f"Filename: {filename}, Scenario: {scenario}")  # Debugging output
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     df = pd.read_csv(filepath)
 
     weights = session.get('weights')
     goals = session.get('goals')
     total_demand = session.get('total_demand')
+
+    if weights is None or goals is None or total_demand is None:
+        flash("Session data is missing, please re-upload the file and set weights.")
+        return redirect(url_for('index'))
 
     result = optimize(df, total_demand, weights, goals, scenario)
     result['filename'] = filename  # Ensure filename is passed to the template
