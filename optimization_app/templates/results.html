@@ -11,8 +11,8 @@
     {% if result.status == "Optimal solution found" %}
     <h2>Purchases</h2>
     <ul>
-        {% for supplier, quantity in result.purchase.items() %}
-        <li>{{ supplier }}: {{ quantity }} bags (60kg)</li>
+        {% for supplier, quantity in result.purchase|sort(attribute='1', reverse=True) %}
+        <li>{{ supplier }}: {{ quantity }} bags</li>
         {% endfor %}
     </ul>
     <h2>Totals</h2>
@@ -21,6 +21,9 @@
     <h2>Deviations</h2>
     <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
     <p>Water Usage Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
+    <h2>Scenarios</h2>
+    <button onclick="window.location.href='{{ url_for('show_scenario', filename=result.filename, scenario='high') }}'">Show High Yield Scenario</button>
+    <button onclick="window.location.href='{{ url_for('show_scenario', filename=result.filename, scenario='low') }}'">Show Low Yield Scenario</button>
     {% endif %}
 </body>
 </html>

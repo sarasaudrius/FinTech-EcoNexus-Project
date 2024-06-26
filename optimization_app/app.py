@@ -3,7 +3,7 @@ App module for the optimization app.
 '''
 
 ### Import necessary libraries
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, request, render_template, redirect, url_for, flash, session
 import os
 import pandas as pd
 import gurobipy as gp
@@ -50,20 +50,46 @@ def set_weights(filename):
             'cost': float(request.form['cost_goal']),
             'water': float(request.form['water_goal'])
         }
+        yield_scenario = 'average'
 
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         df = pd.read_csv(filepath)
-        result = optimize(df, total_demand, weights, goals)
+        result = optimize(df, total_demand, weights, goals, yield_scenario)
+
+        # Store parameters in session
+        session['weights'] = weights
+        session['goals'] = goals
+        session['total_demand'] = total_demand
+
         return render_template('results.html', result=result)
     return render_template('weights.html', filename=filename)
 
-def optimize(df, total_demand, weights, goals):
+
+@app.route('/scenario/<filename>/<scenario>', methods=['GET'])
+def show_scenario(filename, scenario):
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    df = pd.read_csv(filepath)
+
+    weights = session.get('weights')
+    goals = session.get('goals')
+    total_demand = session.get('total_demand')
+
+    result = optimize(df, total_demand, weights, goals, scenario)
+    return render_template('results.html', result=result)
+
+def optimize(df, total_demand, weights, goals, yield_scenario):
     suppliers = df['Supplier ID'].tolist()
     cost_per_bag = df['Cost per bag (euros)'].tolist()
     water_usage = df['Water usage (liters per bag)'].tolist()
     farm_size = df['Farm size (ha)'].tolist()
     yield_per_ha = df['Yield (bags per ha)'].tolist()
-    
+
+    # Adjust yield based on the selected scenario
+    if yield_scenario == 'high':
+        yield_per_ha = [y * 1.2 for y in yield_per_ha]  # 20% higher than average
+    elif yield_scenario == 'low':
+        yield_per_ha = [y * 0.8 for y in yield_per_ha]  # 20% lower than average
+
     supply_capacity = [farm_size[i] * yield_per_ha[i] for i in range(len(suppliers))]
 
     # Create a new model
@@ -98,11 +124,12 @@ def optimize(df, total_demand, weights, goals):
     result = {}
     if model.status == GRB.OPTIMAL:
         result['status'] = "Optimal solution found"
-        result['purchase'] = {suppliers[i]: x[suppliers[i]].X for i in range(len(suppliers))}
+        result['purchase'] = sorted({suppliers[i]: x[suppliers[i]].X for i in range(len(suppliers))}.items(), key=lambda item: item[1], reverse=True)
         result['total_cost'] = gp.quicksum(cost_per_bag[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
         result['total_water'] = gp.quicksum(water_usage[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
         result['cost_deviation'] = (deviation_vars['cost'][0].X, deviation_vars['cost'][1].X)
         result['water_deviation'] = (deviation_vars['water'][0].X, deviation_vars['water'][1].X)
+        result['filename'] = filename
     else:
         result['status'] = "No optimal solution found"
 
