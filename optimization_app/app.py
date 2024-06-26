@@ -2,22 +2,27 @@
 App module for the optimization app.
 '''
 
-### Import necessary libraries
 from flask import Flask, request, render_template, redirect, url_for, flash, session
 import os
 import pandas as pd
 import gurobipy as gp
 from gurobipy import GRB
+from celery import Celery
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 app.config['UPLOAD_FOLDER'] = 'uploads/'
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+
+# Initialize Celery
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
 
 # Ensure the uploads directory exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Route for uploading files
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -56,7 +61,6 @@ def set_weights(filename):
         df = pd.read_csv(filepath)
         result = optimize(df, total_demand, weights, goals, yield_scenario)
 
-        # Store parameters in session
         session['weights'] = weights
         session['goals'] = goals
         session['total_demand'] = total_demand
@@ -74,8 +78,10 @@ def show_scenario(filename, scenario):
     total_demand = session.get('total_demand')
 
     result = optimize(df, total_demand, weights, goals, scenario)
+    result['filename'] = filename  # Ensure filename is passed to the template
     return render_template('results.html', result=result)
 
+@celery.task
 def optimize(df, total_demand, weights, goals, yield_scenario):
     suppliers = df['Supplier ID'].tolist()
     cost_per_bag = df['Cost per bag (euros)'].tolist()
@@ -83,7 +89,6 @@ def optimize(df, total_demand, weights, goals, yield_scenario):
     farm_size = df['Farm size (ha)'].tolist()
     yield_per_ha = df['Yield (bags per ha)'].tolist()
 
-    # Adjust yield based on the selected scenario
     if yield_scenario == 'high':
         yield_per_ha = [y * 1.2 for y in yield_per_ha]  # 20% higher than average
     elif yield_scenario == 'low':
