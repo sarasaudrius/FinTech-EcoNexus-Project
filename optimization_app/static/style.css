@@ -11,7 +11,7 @@ body {
 h1 {
     color: #2c3e50;
     font-size: 2.5em;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 a {
@@ -68,7 +68,13 @@ input[type="submit"]:hover {
 }
 
 .logo {
-    width: 200px; /* Adjust as needed */
+    width: 500px; /* Increased size */
     margin-bottom: 20px;
 }
 
+.description {
+    text-align: center;
+    font-size: 1.2em;
+    margin-top: 20px;
+    color: #666;
+}

@@ -6,8 +6,15 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 import os
 import pandas as pd
 import gurobipy as gp
+import matplotlib.pyplot as plt
+import io
+import base64
+import plotly as plotly
+import plotly.graph_objects as go
 from gurobipy import GRB
 from celery import Celery
+from plotly.io import to_json
+import json
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -103,7 +110,7 @@ def optimize(df, total_demand, weights, goals, yield_scenario):
     elif yield_scenario == 'low':
         yield_per_ha = [y * 0.8 for y in yield_per_ha]  # 20% lower than average
 
-    supply_capacity = [farm_size[i] * yield_per_ha[i] for i in range(len(suppliers))]
+    supply_capacity = [int(farm_size[i] * yield_per_ha[i]) for i in range(len(suppliers))]
 
     model = gp.Model("supplier_selection")
 
@@ -130,14 +137,47 @@ def optimize(df, total_demand, weights, goals, yield_scenario):
 
     result = {}
     if model.status == GRB.OPTIMAL:
+        selected_suppliers = sorted({suppliers[i]: int(x[suppliers[i]].X) for i in range(len(suppliers)) if x[suppliers[i]].X > 0}.items(), key=lambda item: item[1], reverse=True)
         result['status'] = "Optimal solution found"
-        result['purchase'] = sorted({suppliers[i]: x[suppliers[i]].X for i in range(len(suppliers))}.items(), key=lambda item: item[1], reverse=True)
-        result['total_cost'] = gp.quicksum(cost_per_bag[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        result['total_water'] = gp.quicksum(water_usage[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue()
-        result['cost_deviation'] = (deviation_vars['cost'][0].X, deviation_vars['cost'][1].X)
-        result['water_deviation'] = (deviation_vars['water'][0].X, deviation_vars['water'][1].X)
+        result['purchase'] = selected_suppliers
+        result['total_cost'] = round(gp.quicksum(cost_per_bag[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue(), 1)
+        result['total_water'] = round(gp.quicksum(water_usage[i] * x[suppliers[i]].X for i in range(len(suppliers))).getValue(), 1)
+        result['cost_deviation'] = (round(deviation_vars['cost'][0].X, 1), round(deviation_vars['cost'][1].X, 1))
+        result['water_deviation'] = (round(deviation_vars['water'][0].X, 1), round(deviation_vars['water'][1].X, 1))
+        
+        df_selected = df[df['Supplier ID'].isin([s[0] for s in selected_suppliers])].copy()
+        df_selected['Cost per bag (euros)'] = df_selected['Cost per bag (euros)'].round(1)
+        df_selected['Water usage (liters per bag)'] = df_selected['Water usage (liters per bag)'].round(1)
+        df_selected['Farm size (ha)'] = df_selected['Farm size (ha)'].round(1)
+        df_selected['Yield (bags per ha)'] = df_selected['Yield (bags per ha)'].round(1)
+        result['supplier_data'] = df_selected.to_dict(orient='records')
+
+        # Create Plotly graph
+        categories = ['Cost', 'Water Usage']
+        goals_values = [goals['cost'], goals['water']]
+        achieved_values = [result['total_cost'], result['total_water']]
+        deviations_plus = [result['cost_deviation'][0], result['water_deviation'][0]]
+        deviations_minus = [result['cost_deviation'][1], result['water_deviation'][1]]
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(x=categories, y=goals_values, name='Goal', marker_color='green'))
+        fig.add_trace(go.Bar(x=categories, y=achieved_values, name='Achieved', marker_color='blue'))
+        fig.add_trace(go.Bar(x=categories, y=deviations_plus, name='Deviation +', marker_color='red'))
+        fig.add_trace(go.Bar(x=categories, y=deviations_minus, name='Deviation -', marker_color='orange'))
+
+        fig.update_layout(title='Goals vs Achieved vs Deviations',
+                          xaxis_title='Metrics',
+                          yaxis_title='Values',
+                          barmode='group')
+
+        # Convert Plotly figure to JSON
+        graph_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+        result['deviation_plot'] = graph_json
+
     else:
         result['status'] = "No optimal solution found"
+
+    return result
 
     return result
 

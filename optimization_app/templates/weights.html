@@ -1,25 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
+    <meta charset="UTF-8">
     <title>Set Weights and Goals</title>
-  </head>
-  <body>
-    <h1>Set Weights for Goals</h1>
-    <form method="post">
-      <label for="total_demand">Total Demand:</label>
-      <input type="number" id="total_demand" name="total_demand" step="0.01" required><br>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h1>Set Weights for Goals</h1>
+    </div>
+    <div class="form-container">
+        <form id="weightsForm" method="post" onsubmit="return validateAndNormalizeForm()">
+            <label for="total_demand">Total Demand (Specify in coffee bags (1 bag = 60kg of coffee beans)):</label>
+            <input type="number" id="total_demand" name="total_demand" step="0.01" required><br>
 
-      <label for="weight_cost">Weight for Cost:</label>
-      <input type="number" id="weight_cost" name="weight_cost" step="0.01" required><br>
-      <label for="cost_goal">Cost Goal:</label>
-      <input type="number" id="cost_goal" name="cost_goal" step="0.01" required><br>
+            <label for="weight_cost">Weight for Cost:</label>
+            <input type="number" id="weight_cost" name="weight_cost" step="0.01" min="0" max="1" required><br>
+            <label for="cost_goal">Cost Goal:</label>
+            <input type="number" id="cost_goal" name="cost_goal" step="0.01" required><br>
 
-      <label for="weight_water">Weight for Water Usage:</label>
-      <input type="number" id="weight_water" name="weight_water" step="0.01" required><br>
-      <label for="water_goal">Water Usage Goal:</label>
-      <input type="number" id="water_goal" name="water_goal" step="0.01" required><br>
+            <label for="weight_water">Weight for Water Usage:</label>
+            <input type="number" id="weight_water" name="weight_water" step="0.01" min="0" max="1" required><br>
+            <label for="water_goal">Water Usage Goal (Specify in liters):</label>
+            <input type="number" id="water_goal" name="water_goal" step="0.01" required><br>
 
-      <input type="submit" value="Optimize">
-    </form>
-  </body>
+            <input type="submit" value="Optimize">
+        </form>
+    </div>
+
+    <script>
+        function validateAndNormalizeForm() {
+            let weightCost = parseFloat(document.getElementById("weight_cost").value);
+            let weightWater = parseFloat(document.getElementById("weight_water").value);
+
+            if (weightCost < 0 || weightCost > 1) {
+                alert("Weight for Cost must be between 0 and 1.");
+                return false;
+            }
+
+            if (weightWater < 0 || weightWater > 1) {
+                alert("Weight for Water Usage must be between 0 and 1.");
+                return false;
+            }
+
+            let totalWeight = weightCost + weightWater;
+
+            if (totalWeight !== 1) {
+                weightCost = weightCost / totalWeight;
+                weightWater = weightWater / totalWeight;
+
+                document.getElementById("weight_cost").value = weightCost.toFixed(2);
+                document.getElementById("weight_water").value = weightWater.toFixed(2);
+
+                alert("Weights have been normalized to sum to 1. New weights: Cost = " + weightCost.toFixed(2) + ", Water Usage = " + weightWater.toFixed(2));
+            }
+
+            return true; // Allow form submission if all checks pass
+        }
+    </script>
+</body>
 </html>

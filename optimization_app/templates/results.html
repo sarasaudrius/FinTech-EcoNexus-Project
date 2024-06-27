@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Optimization Results</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <h1>Optimization Results</h1>
@@ -15,12 +16,37 @@
         <li>{{ supplier }}: {{ quantity }} bags</li>
         {% endfor %}
     </ul>
+    <h2>Chosen Supplier Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Supplier ID</th>
+                <th>Cost per bag (euros)</th>
+                <th>Water usage (liters per bag)</th>
+                <th>Farm size (ha)</th>
+                <th>Yield (bags per ha)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for supplier in result.supplier_data %}
+            <tr>
+                <td>{{ supplier['Supplier ID'] }}</td>
+                <td>{{ supplier['Cost per bag (euros)'] }}</td>
+                <td>{{ supplier['Water usage (liters per bag)'] }}</td>
+                <td>{{ supplier['Farm size (ha)'] }}</td>
+                <td>{{ supplier['Yield (bags per ha)'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     <h2>Totals</h2>
     <p>Total Cost: {{ result.total_cost }}</p>
     <p>Total Water Usage: {{ result.total_water }}</p>
     <h2>Deviations</h2>
     <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
     <p>Water Usage Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
+    <h2>Deviation Plot</h2>
+    <div id="deviation_plot"></div>
     <h2>Scenarios</h2>
     <button onclick="showScenario('high')">Show High Yield Scenario</button>
     <button onclick="showScenario('low')">Show Low Yield Scenario</button>
@@ -33,6 +59,11 @@
             console.log(formedUrl);  // Debugging output
             window.location.href = formedUrl;
         }
-    </script>    
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var plot_data = {{ result.deviation_plot|safe }};
+            Plotly.newPlot('deviation_plot', plot_data.data, plot_data.layout);
+        });
+    </script>
 </body>
 </html>

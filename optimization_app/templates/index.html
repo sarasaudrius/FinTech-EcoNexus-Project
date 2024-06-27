@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>EcoNexus: Balancing your Financial goals with Sustainability Objectives</title>
+    <title>EcoNexus: Balancing your Financial Goals with Sustainability Objectives</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="header">
-        <img src="{{ url_for('static', filename='EcoNexusLogo.png') }}" alt="EcoNexus Logo" class="logo">
+        <img src="{{ url_for('static', filename='EcoNexusLogo-removebg-preview.png') }}" alt="EcoNexus Logo" class="logo">
         <h1>Welcome to EcoNexus</h1>
     </div>
-    <a href="/upload">Please Upload Supplier Data</a>
+    <div class="description">
+        <p>EcoNexus version 1.0.0 is designed to address the critical issue of sustainable sourcing of coffee. One of the main factors contributing to unsustainable practices in coffee production is water usage. Therefore, this tool provides the capability to solve the complex problem of selecting suppliers by optimizing your financial goals (minimizing cost) and environmental goals (minimizing water usage). The end result indicates the number of bags of coffee (60kg per bag) to purchase, while also considering the deviations from your indicated goals given the data of your suppliers.</p>
+        <p>Our goal is to help balance your financial objectives with sustainability goals by offering an optimized supplier selection process based on cost, water usage, and other crucial factors. Join us in promoting sustainable practices in the coffee industry.</p>
+        <p>Test out the tool here: <a href="/upload">Please Upload Supplier Data</a></p>
+    </div>
 </body>
 </html>
