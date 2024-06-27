@@ -1,69 +1,104 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Optimization Results</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>
-<body>
-    <h1>Optimization Results</h1>
-    <p>Status: {{ result.status }}</p>
-    {% if result.status == "Optimal solution found" %}
-    <h2>Purchases</h2>
-    <ul>
-        {% for supplier, quantity in result.purchase %}
-        <li>{{ supplier }}: {{ quantity }} bags</li>
-        {% endfor %}
-    </ul>
-    <h2>Chosen Supplier Details</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Supplier ID</th>
-                <th>Cost per bag (euros)</th>
-                <th>Water usage (liters per bag)</th>
-                <th>Farm size (ha)</th>
-                <th>Yield (bags per ha)</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for supplier in result.supplier_data %}
-            <tr>
-                <td>{{ supplier['Supplier ID'] }}</td>
-                <td>{{ supplier['Cost per bag (euros)'] }}</td>
-                <td>{{ supplier['Water usage (liters per bag)'] }}</td>
-                <td>{{ supplier['Farm size (ha)'] }}</td>
-                <td>{{ supplier['Yield (bags per ha)'] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <h2>Totals</h2>
-    <p>Total Cost: {{ result.total_cost }}</p>
-    <p>Total Water Usage: {{ result.total_water }}</p>
-    <h2>Deviations</h2>
-    <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
-    <p>Water Usage Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
-    <h2>Deviation Plot</h2>
-    <div id="deviation_plot"></div>
-    <h2>Scenarios</h2>
-    <button onclick="showScenario('high')">Show High Yield Scenario</button>
-    <button onclick="showScenario('low')">Show Low Yield Scenario</button>
-    {% endif %}
-
-    <script>
-        function showScenario(scenario) {
-            const url = '{{ url_for("show_scenario", filename=result.filename, scenario="__SCENARIO__") }}';
-            const formedUrl = url.replace('__SCENARIO__', scenario);
-            console.log(formedUrl);  // Debugging output
-            window.location.href = formedUrl;
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            var plot_data = {{ result.deviation_plot|safe }};
-            Plotly.newPlot('deviation_plot', plot_data.data, plot_data.layout);
-        });
-    </script>
-</body>
-</html>
+<!-- 
+This HTML document displays the results of the optimization process.
+It shows the status of the optimization, details of the chosen suppliers, 
+total costs, water usage, deviations from goals, and provides interactive plots.
+Users can also view different yield scenarios by clicking on the provided buttons.
+-->
+ <!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <title>Optimization Results</title>
+     <!-- Link to external CSS stylesheet -->
+     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+     <!-- Link to Plotly.js library for generating plots -->
+     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+ </head>
+ <body>
+     <!-- Header for the results page -->
+     <h1>Optimization Results</h1>
+     <p>Status: {{ result.status }}</p>
+     
+     <!-- Conditional rendering if the optimization found an optimal solution -->
+     {% if result.status == "Optimal solution found" %}
+     <h2>Purchases</h2>
+     <!-- List of suppliers and quantities to purchase -->
+     <ul>
+         {% for supplier, quantity in result.purchase %}
+         <li>{{ supplier }}: {{ quantity }} bags</li>
+         {% endfor %}
+     </ul>
+     
+     <h2>Chosen Supplier Details</h2>
+     <!-- Table showing details of the chosen suppliers -->
+     <table>
+         <thead>
+             <tr>
+                 <th>Supplier ID</th>
+                 <th>Cost per bag (euros)</th>
+                 <th>Water usage (liters per bag)</th>
+                 <th>Farm size (ha)</th>
+                 <th>Yield (bags per ha)</th>
+             </tr>
+         </thead>
+         <tbody>
+             {% for supplier in result.supplier_data %}
+             <tr>
+                 <td>{{ supplier['Supplier ID'] }}</td>
+                 <td>{{ supplier['Cost per bag (euros)'] }}</td>
+                 <td>{{ supplier['Water usage (liters per bag)'] }}</td>
+                 <td>{{ supplier['Farm size (ha)'] }}</td>
+                 <td>{{ supplier['Yield (bags per ha)'] }}</td>
+             </tr>
+             {% endfor %}
+         </tbody>
+     </table>
+     
+     <h2>Totals</h2>
+     <!-- Display total cost and total water usage -->
+     <p>Total Cost: {{ result.total_cost }}</p>
+     <p>Total Water Usage: {{ result.total_water }}</p>
+     
+     <h2>Deviations</h2>
+     <!-- Display deviations from goals for cost and water usage -->
+     <p>Cost Deviation: +{{ result.cost_deviation[0] }}, -{{ result.cost_deviation[1] }}</p>
+     <p>Water Usage Deviation: +{{ result.water_deviation[0] }}, -{{ result.water_deviation[1] }}</p>
+     
+     <h2>Deviation Plots</h2>
+     <!-- Div elements where deviation plots will be rendered -->
+     <div id="deviation_plot_cost"></div>
+     <div id="deviation_plot_water"></div>
+     
+     <h2>Scenarios</h2>
+     <!-- Buttons to show different yield scenarios -->
+     <button onclick="showScenario('high')">Show High Yield Scenario</button>
+     <button onclick="showScenario('low')">Show Low Yield Scenario</button>
+     {% endif %}
+ 
+     <script>
+         /**
+          * Function to redirect to the scenario view based on the selected scenario.
+          * Replaces placeholders in the URL with actual filename and scenario.
+          */
+         function showScenario(scenario) {
+             const filename = "{{ result.filename }}"; // Get the filename from the template context
+             const url = '{{ url_for("show_scenario", filename="__FILENAME__", scenario="__SCENARIO__") }}'
+                         .replace('__FILENAME__', filename)
+                         .replace('__SCENARIO__', scenario);
+             console.log(url);  // Debugging output
+             window.location.href = url; // Redirect to the generated URL
+         }
+ 
+         /**
+          * Event listener to render Plotly plots once the DOM content is loaded.
+          * Fetches plot data from the template context and renders the plots.
+          */
+         document.addEventListener('DOMContentLoaded', function() {
+             var plot_data_cost = {{ result.deviation_plot_cost|safe }};
+             var plot_data_water = {{ result.deviation_plot_water|safe }};
+             Plotly.newPlot('deviation_plot_cost', plot_data_cost.data, plot_data_cost.layout);
+             Plotly.newPlot('deviation_plot_water', plot_data_water.data, plot_data_water.layout);
+         });
+     </script>
+ </body>
+ </html>
