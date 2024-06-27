@@ -55,9 +55,10 @@ To run the EcoNexus application, follow these steps:
    ```bash
    pip install flask pandas gurobipy matplotlib plotly celery redis
 2. **Run the Flask Application**:
-    Open the folder in Visual Studio Code.
-    Run the app.py script. In the output, a link will be provided.
-    Open the provided link with Ctrl+Click to access the web application.
+   - Open the folder in Visual Studio Code.
+   - Run the app.py script.
+   - In the output, a link will be provided.
+   - Open the provided link with Ctrl+Click to access the web application.
 
 ## Application Workflow
 1. Upload Supplier Data: Navigate to the upload page and upload a CSV file with supplier data.
