@@ -36,7 +36,6 @@ Coffee companies face the challenge of optimizing their supply chain and selecti
 
 - **Demand Constraint**: Total quantity sourced must meet the company's demand.
 - **Supply Capacity Constraints**: Quantity from each supplier should not exceed their maximum capacity.
-- **Additional Constraints**: Optional constraints like region-specific sourcing, transportation distance, etc.
 
 ### Input Data
 
