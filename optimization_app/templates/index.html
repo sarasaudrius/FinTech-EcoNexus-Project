@@ -6,7 +6,10 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Welcome to EcoNexus</h1>
+    <div class="header">
+        <img src="{{ url_for('static', filename='EcoNexusLogo.png') }}" alt="EcoNexus Logo" class="logo">
+        <h1>Welcome to EcoNexus</h1>
+    </div>
     <a href="/upload">Please Upload Supplier Data</a>
 </body>
 </html>
